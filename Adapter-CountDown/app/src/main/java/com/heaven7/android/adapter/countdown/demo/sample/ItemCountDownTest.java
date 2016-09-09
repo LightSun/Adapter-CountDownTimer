@@ -54,7 +54,7 @@ public class ItemCountDownTest extends BaseActivity {
              @Override
              protected void onBindData(Context context, int position, final TestBean item, int itemLayoutId, final ViewHelper helper) {
                  final TextView tv = helper.getView(android.R.id.text1);
-                 mCDM.addCountDownCallback(item, new CountDownCallbackImpl<TestBean>(position, tv) {
+                 mCDM.setCountDownCallback(item, new CountDownCallbackImpl<TestBean>(position, tv) {
                      @Override
                      protected CharSequence format(int position, TestBean bean, long millisUntilFinished) {
                          return DF.format(new Date(millisUntilFinished) ) ;

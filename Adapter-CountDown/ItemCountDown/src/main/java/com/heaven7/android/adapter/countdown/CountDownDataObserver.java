@@ -3,6 +3,10 @@ package com.heaven7.android.adapter.countdown;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 
+/**
+ * the count down data observer.
+ * @param <T> the data
+ */
 public abstract class CountDownDataObserver<T extends ILeftTimeGetter> extends RecyclerView.AdapterDataObserver {
 
     private final CountDownManager<T> mCDM;
@@ -13,10 +17,9 @@ public abstract class CountDownDataObserver<T extends ILeftTimeGetter> extends R
 
     @Override
     public void onChanged() {
-        mCDM.cancelAll();
         int size = getItemSize();
         for (int i = 0; i < size; i++) {
-            mCDM.addCountDownTask(i, getItem(i));
+            mCDM.addCountDownTask( i, getItem(i) , false);
         }
     }
 
@@ -32,7 +35,7 @@ public abstract class CountDownDataObserver<T extends ILeftTimeGetter> extends R
         for (int i = 0; i < itemCount; i++) {
             pos = positionStart + i;
             bean = getItem(pos);
-            mCDM.notifyTimeChanged(pos, bean);
+            mCDM.notifyLeftTimeChanged(pos, bean);
         }
     }
 
@@ -43,7 +46,7 @@ public abstract class CountDownDataObserver<T extends ILeftTimeGetter> extends R
         for (int i = 0; i < itemCount; i++) {
             pos = positionStart + i;
             bean = getItem(pos);
-            mCDM.addCountDownTask(pos, bean);
+            mCDM.addCountDownTask(pos, bean, true);
         }
     }
 

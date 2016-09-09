@@ -26,12 +26,10 @@ public abstract class CountDownCallbackImpl<T extends ILeftTimeGetter> implement
     private int getPosition() {
         return (int) mTv.getTag(R.id.count_down_position);
     }
-
     @Override
-    public void onFinish(int pos, T bean) {
-        if (pos == getPosition()) {
-            mTv.setText(format(pos, bean , 0));
-            //Logger.i(TAG, "count down time :  finish , pos = " + pos );
+    public void onPositionChanged(int oldPosition, int newPosition) {
+        if(getPosition() == oldPosition){
+            mTv.setTag(R.id.count_down_position, newPosition);
         }
     }
 
