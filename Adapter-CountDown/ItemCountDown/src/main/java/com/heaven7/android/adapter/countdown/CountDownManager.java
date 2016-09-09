@@ -1,15 +1,12 @@
 package com.heaven7.android.adapter.countdown;
 
 import android.os.CountDownTimer;
-import android.support.annotation.NonNull;
-
-import com.heaven7.adapter.QuickRecycleViewAdapter;
-import com.heaven7.core.util.Logger;
 
 import java.util.HashMap;
 
 /**
  * the count down manager.
+ *
  * @param <T> the data
  */
 public class CountDownManager<T extends ILeftTimeGetter> {
@@ -18,16 +15,16 @@ public class CountDownManager<T extends ILeftTimeGetter> {
 
     private final HashMap<T, CountDownItem> mMap = new HashMap<>();
     private final long countDownInterval;
-    private CountDownDataObserver<T> mObserver;
+    //private CountDownDataObserver<T> mObserver;
 
     public CountDownManager(long countDownInterval) {
         this.countDownInterval = countDownInterval;
     }
 
-    /**
+   /* *//**
      * attach count down timer for adapter.
      * @param adapter the adapter
-     */
+     *//*
     public void attachCountDownTimer(final QuickRecycleViewAdapter<T> adapter) {
         detachCountDownTimer(adapter);
         adapter.registerAdapterDataObserver(mObserver = new CountDownDataObserver<T>(this) {
@@ -44,24 +41,26 @@ public class CountDownManager<T extends ILeftTimeGetter> {
         });
     }
 
-    /**
+    *//**
      * detach count down timer for adapter.
      * @param adapter the adapter
-     */
+     *//*
     public void detachCountDownTimer(QuickRecycleViewAdapter<T> adapter) {
         if (mObserver != null) {
             adapter.unregisterAdapterDataObserver(mObserver);
             mObserver = null;
         }
     }
+*/
 
     /**
      * bind a count down callback to timer , which is indicated by target bean data,
-     * @param bean  the data
+     *
+     * @param bean     the data
      * @param callback the callback
      */
     public void setCountDownCallback(T bean, ICountDownCallback<T> callback) {
-        if(bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()){
+        if (bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()) {
             return;
         }
         final CountDownItem item = mMap.get(bean);
@@ -71,12 +70,13 @@ public class CountDownManager<T extends ILeftTimeGetter> {
 
     /**
      * add a count down task by target args.
-     * @param pos the position
-     * @param bean  the data
+     *
+     * @param pos       the position
+     * @param bean      the data
      * @param cancelOld true to cancel the old timer which is indicated by target data.
      */
     public void addCountDownTask(int pos, T bean, boolean cancelOld) {
-        if(bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()){
+        if (bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()) {
             return;
         }
         final CountDownItem oldItem = mMap.get(bean);
@@ -86,28 +86,29 @@ public class CountDownManager<T extends ILeftTimeGetter> {
         if (oldItem != null) {
             if (cancelOld) {
                 oldItem.mTimer.cancel();
-            }else{
+            } else {
                 oldItem.changePosition(pos);
                 handled = true;
             }
         }
         if (!handled) {
             final CountDownItem currItem = new CountDownItem(pos, bean, null);
-            mMap.put(bean , currItem);
+            mMap.put(bean, currItem);
             currItem.mTimer.start();
         }
     }
 
     /**
      * notify the left time of raw data is changed.
+     *
      * @param pos  the position
      * @param bean the data
      */
     public void notifyLeftTimeChanged(int pos, T bean) {
-        if(bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()){
+        if (bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()) {
             return;
         }
-        Logger.i(TAG, "notifyLeftTimeChanged", "pos = "+ pos + " ,item = " + bean);
+        Debugger.getDefault().i(TAG + "__notifyLeftTimeChanged", "pos = " + pos + " ,item = " + bean);
         final CountDownItem item = mMap.remove(bean);
         //cancel and start new timer
         if (item != null) {
@@ -119,15 +120,16 @@ public class CountDownManager<T extends ILeftTimeGetter> {
     }
 
     /**
-     *  notify the item position is changed
+     * notify the item position is changed
+     *
      * @param pos  the position
      * @param bean the data
      */
     public void notifyPositionChanged(int pos, T bean) {
-        if(bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()){
+        if (bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()) {
             return;
         }
-        Logger.i(TAG, "notifyPositionChanged", "pos = "+ pos + " ,item = " + bean);
+        Debugger.getDefault().i(TAG + "__notifyPositionChanged", "pos = " + pos + " ,item = " + bean);
         final CountDownItem item = mMap.get(bean);
         if (item != null) {
             item.changePosition(pos);
@@ -136,13 +138,14 @@ public class CountDownManager<T extends ILeftTimeGetter> {
 
     /**
      * cancel the target timer which is indicated by target data.
+     *
      * @param bean the data
      */
     public void cancel(T bean) {
-        if(bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()){
+        if (bean instanceof ICountDownable && !((ICountDownable) bean).shouldCountDown()) {
             return;
         }
-        Logger.i(TAG, "cancel", "item = " + bean);
+        Debugger.getDefault().i(TAG + "__cancel", "item = " + bean);
         final CountDownItem item = mMap.remove(bean);
         if (item != null) {
             item.mTimer.cancel();

@@ -6,13 +6,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;
 
-import com.heaven7.adapter.BaseSelector;
 import com.heaven7.adapter.QuickRecycleViewAdapter;
 import com.heaven7.android.adapter.countdown.CountDownCallbackImpl;
-import com.heaven7.android.adapter.countdown.CountDownManager;
-import com.heaven7.android.adapter.countdown.ILeftTimeGetter;
 import com.heaven7.android.adapter.countdown.demo.BaseActivity;
 import com.heaven7.android.adapter.countdown.demo.R;
+import com.heaven7.android.adapter.countdown.demo.extra.CountDownManager2;
+import com.heaven7.android.adapter.countdown.demo.extra.TestBean;
 import com.heaven7.core.util.ViewHelper;
 
 import java.text.SimpleDateFormat;
@@ -44,10 +43,10 @@ public class ItemCountDownTest extends BaseActivity {
          mRv.setLayoutManager(new LinearLayoutManager(this));
          mAdapter = new QuickRecycleViewAdapter<TestBean>(android.R.layout.simple_list_item_1,
                  new ArrayList<TestBean>()) {
-             private CountDownManager<TestBean> mCDM;
+             private CountDownManager2<TestBean> mCDM;
              @Override
              protected void onFinalInit() {
-                 mCDM = new CountDownManager<TestBean>(1000);
+                 mCDM = new CountDownManager2<TestBean>(1000);
                  mCDM.attachCountDownTimer(this);
              }
 
@@ -78,16 +77,4 @@ public class ItemCountDownTest extends BaseActivity {
         }
     }
 
-    private static class TestBean extends BaseSelector implements ILeftTimeGetter {
-
-        public long lefttime;
-
-        public TestBean(long time) {
-            this.lefttime = time;
-        }
-        @Override
-        public long getLeftTime() {
-            return lefttime;
-        }
-    }
 }
