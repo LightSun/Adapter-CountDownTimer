@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.heaven7.adapter.AdapterManager;
 import com.heaven7.adapter.QuickRecycleViewAdapter;
 import com.heaven7.android.adapter.countdown.CountDownCallbackImpl;
 import com.heaven7.android.adapter.countdown.CountDownManager;
@@ -126,16 +127,19 @@ public class ItemCountDownTest extends BaseActivity {
         }
         if(itemSize > 1){
             int index = 1;
-            final TestBean testBean = mAdapter.getAdapterManager().getItemAt(index);
-            testBean.leftTime = (mMaxLeftTime+= 2000);
-            mAdapter.getAdapterManager().notifyItemChanged(index);
+            mAdapter.getAdapterManager().performItemChange(1, mChanger);
             Logger.i(TAG, "onClickUpdate", "item changed, position = " + index +" ,left time = " + mMaxLeftTime);
         }else{
-            final TestBean testBean = mAdapter.getAdapterManager().getItemAt(0);
-            testBean.leftTime = (mMaxLeftTime+= 2000);
-            mAdapter.getAdapterManager().notifyItemChanged(0);
+            mAdapter.getAdapterManager().performItemChange(0, mChanger);
             Logger.i(TAG, "onClickUpdate", "item changed, position = " + 0 +" ,left time = " + mMaxLeftTime);
         }
     }
 
+    private final AdapterManager.ItemChanger<TestBean> mChanger = new AdapterManager.ItemChanger<TestBean>() {
+        @Override
+        public boolean onItemChange(TestBean testBean) {
+            testBean.leftTime = (mMaxLeftTime += 2000);
+            return true ;
+        }
+    };
 }
