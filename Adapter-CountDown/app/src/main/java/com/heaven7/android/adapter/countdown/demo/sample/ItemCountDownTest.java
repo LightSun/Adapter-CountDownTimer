@@ -72,7 +72,7 @@ public class ItemCountDownTest extends BaseActivity {
              }
          };
         //必须在setAdapter之前调用
-        mCDM.attachCountDownTimer(mAdapter);
+        mCDM.attachCountDownObserver(mAdapter);
         mRv.setAdapter(mAdapter);
       //  addTestData();
     }
@@ -80,6 +80,7 @@ public class ItemCountDownTest extends BaseActivity {
     @Override
     protected void onDestroy() {
         //因为有timer.必须调用这个
+        mCDM.detachCountDownObserver();
         mCDM.cancelAll();
         super.onDestroy();
     }

@@ -20,8 +20,16 @@ public class CountDownDataObserver<T extends ILeftTimeGetter> extends RecyclerVi
     public CountDownDataObserver(CountDownManager<T> cdm,QuickRecycleViewAdapter<T> mAdapter) {
         this.mCDM = cdm;
         this.mAdapter = mAdapter;
+    }
+
+    public void attach(){
         mAdapter.registerAdapterDataObserver(this);
         mAdapter.getAdapterManager().registerAdapterDataRemoveObserver(this);
+    }
+
+    public void detach(){
+        mAdapter.getAdapterManager().unregisterAdapterDataRemoveObserver(this);
+        mAdapter.unregisterAdapterDataObserver(this);
     }
 
     private AdapterManager<T> getAdapterManager(){

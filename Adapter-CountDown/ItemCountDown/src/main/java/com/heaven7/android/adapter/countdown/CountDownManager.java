@@ -24,22 +24,21 @@ public class CountDownManager<T extends ILeftTimeGetter> {
     }
 
     /**
-     * attach count down timer for adapter.
+     * attach count down observer for adapter.
      * @param adapter the adapter
      */
-    public void attachCountDownTimer(final QuickRecycleViewAdapter<T> adapter) {
-        detachCountDownTimer(adapter);
+    public void attachCountDownObserver(final QuickRecycleViewAdapter<T> adapter) {
+        detachCountDownObserver();
         mObserver = new CountDownDataObserver<T>(this,adapter);
+        mObserver.attach();
     }
 
     /**
-     * detach count down timer for adapter.
-     * @param adapter the adapter
+     * detach count down observer for adapter.
      */
-    public void detachCountDownTimer(QuickRecycleViewAdapter<T> adapter) {
-        if (mObserver != null && adapter != null) {
-            adapter.getAdapterManager().unregisterAdapterDataRemoveObserver(mObserver);
-            adapter.unregisterAdapterDataObserver(mObserver);
+    public void detachCountDownObserver() {
+        if (mObserver != null ) {
+            mObserver.detach();
             mObserver = null;
         }
     }
