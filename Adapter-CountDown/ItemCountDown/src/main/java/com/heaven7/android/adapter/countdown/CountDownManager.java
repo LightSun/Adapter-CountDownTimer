@@ -2,6 +2,8 @@ package com.heaven7.android.adapter.countdown;
 
 import android.os.CountDownTimer;
 
+import com.heaven7.adapter.QuickRecycleViewAdapter;
+
 import java.util.HashMap;
 
 /**
@@ -15,43 +17,32 @@ public class CountDownManager<T extends ILeftTimeGetter> {
 
     private final HashMap<T, CountDownItem> mMap = new HashMap<>();
     private final long countDownInterval;
-    //private CountDownDataObserver<T> mObserver;
+    private CountDownDataObserver<T> mObserver;
 
     public CountDownManager(long countDownInterval) {
         this.countDownInterval = countDownInterval;
     }
 
-   /* *//**
+    /**
      * attach count down timer for adapter.
      * @param adapter the adapter
-     *//*
+     */
     public void attachCountDownTimer(final QuickRecycleViewAdapter<T> adapter) {
         detachCountDownTimer(adapter);
-        adapter.registerAdapterDataObserver(mObserver = new CountDownDataObserver<T>(this) {
-            @NonNull
-            @Override
-            protected T getItem(int position) {
-                return adapter.getAdapterManager().getItemAt(position);
-            }
-
-            @Override
-            protected int getItemSize() {
-                return adapter.getAdapterManager().getItemSize();
-            }
-        });
+        mObserver = new CountDownDataObserver<T>(this,adapter);
     }
 
-    *//**
+    /**
      * detach count down timer for adapter.
      * @param adapter the adapter
-     *//*
+     */
     public void detachCountDownTimer(QuickRecycleViewAdapter<T> adapter) {
-        if (mObserver != null) {
+        if (mObserver != null && adapter != null) {
+            adapter.getAdapterManager().unregisterAdapterDataRemoveObserver(mObserver);
             adapter.unregisterAdapterDataObserver(mObserver);
             mObserver = null;
         }
     }
-*/
 
     /**
      * bind a count down callback to timer , which is indicated by target bean data,
@@ -65,7 +56,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
         }
         final CountDownItem item = mMap.get(bean);
         item.setCallback(callback);
-        item.tick(item.mLeftTime);
+        item.tick(item.getLeftTime());
     }
 
     /**
@@ -85,16 +76,16 @@ public class CountDownManager<T extends ILeftTimeGetter> {
         //pre contains timer, check if cancel
         if (oldItem != null) {
             if (cancelOld) {
-                oldItem.mTimer.cancel();
+                oldItem.cancelTimer();
             } else {
-                oldItem.changePosition(pos);
+                oldItem.setPosition(pos);
                 handled = true;
             }
         }
         if (!handled) {
             final CountDownItem currItem = new CountDownItem(pos, bean, null);
             mMap.put(bean, currItem);
-            currItem.mTimer.start();
+            currItem.startTimer();
         }
     }
 
@@ -112,10 +103,10 @@ public class CountDownManager<T extends ILeftTimeGetter> {
         final CountDownItem item = mMap.remove(bean);
         //cancel and start new timer
         if (item != null) {
-            item.mTimer.cancel();
+            item.cancelTimer();
             CountDownItem currItem = new CountDownItem(pos, bean, item.mCallback);
             mMap.put(bean, currItem);
-            currItem.mTimer.start();
+            currItem.startTimer();
         }
     }
 
@@ -132,7 +123,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
         Debugger.getDefault().i(TAG + "__notifyPositionChanged", "pos = " + pos + " ,item = " + bean);
         final CountDownItem item = mMap.get(bean);
         if (item != null) {
-            item.changePosition(pos);
+            item.setPosition(pos);
         }
     }
 
@@ -148,7 +139,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
         Debugger.getDefault().i(TAG + "__cancel", "item = " + bean);
         final CountDownItem item = mMap.remove(bean);
         if (item != null) {
-            item.mTimer.cancel();
+            item.cancelTimer();
         }
     }
 
@@ -157,7 +148,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
      */
     public void cancelAll() {
         for (CountDownItem item : mMap.values()) {
-            item.mTimer.cancel();
+            item.cancelTimer();
         }
         mMap.clear();
     }
@@ -179,6 +170,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
             this.mTimer = new CountDownTimer(mLeftTime, countDownInterval) {
                 @Override
                 public void onTick(long millisUntilFinished) {
+                    Debugger.getDefault().d(TAG + "__onTick", "position = " + mPos);
                     tick(millisUntilFinished);
                 }
 
@@ -201,7 +193,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
             }
         }
 
-        public void changePosition(int position) {
+        public void setPosition(int position) {
             if (mCallback != null) {
                 mCallback.onPositionChanged(mPos, position);
             }
@@ -210,6 +202,21 @@ public class CountDownManager<T extends ILeftTimeGetter> {
 
         public void setCallback(ICountDownCallback<T> callback) {
             this.mCallback = callback;
+        }
+
+        /**
+         * get the latest left time
+         * @return the newest left time
+         */
+        public long getLeftTime() {
+            return mLeftTime;
+        }
+
+        public void cancelTimer() {
+            mTimer.cancel();
+        }
+        public void startTimer(){
+            mTimer.start();
         }
     }
 

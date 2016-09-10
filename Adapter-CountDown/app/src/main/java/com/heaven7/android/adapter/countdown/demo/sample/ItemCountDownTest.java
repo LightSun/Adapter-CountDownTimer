@@ -4,14 +4,17 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.heaven7.adapter.QuickRecycleViewAdapter;
 import com.heaven7.android.adapter.countdown.CountDownCallbackImpl;
+import com.heaven7.android.adapter.countdown.CountDownManager;
 import com.heaven7.android.adapter.countdown.demo.BaseActivity;
 import com.heaven7.android.adapter.countdown.demo.R;
-import com.heaven7.android.adapter.countdown.demo.extra.CountDownManager2;
 import com.heaven7.android.adapter.countdown.demo.extra.TestBean;
+import com.heaven7.core.util.Logger;
 import com.heaven7.core.util.ViewHelper;
 
 import java.text.SimpleDateFormat;
@@ -19,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import butterknife.InjectView;
+import butterknife.OnClick;
 
 /**
  * recycler view 或者list view里面item倒计时。测试
@@ -27,11 +31,22 @@ import butterknife.InjectView;
 public class ItemCountDownTest extends BaseActivity {
 
     private static final SimpleDateFormat DF = new SimpleDateFormat("HH:mm:ss");
+    private static final String TAG = "ItemCountDownTest";
+
+    @InjectView(R.id.bt_add)
+    Button mBt_add;
+    @InjectView(R.id.bt_delete)
+    Button mBt_delete;
+    @InjectView(R.id.bt_update)
+    Button mBt_update;
 
     @InjectView(R.id.rv)
     RecyclerView mRv;
 
-    QuickRecycleViewAdapter<TestBean> mAdapter;
+    private QuickRecycleViewAdapter<TestBean> mAdapter;
+    private long mMaxLeftTime = 60*1000;
+
+    private final CountDownManager<TestBean> mCDM = new CountDownManager<TestBean>(1000);
 
     @Override
     protected int getlayoutId() {
@@ -41,15 +56,9 @@ public class ItemCountDownTest extends BaseActivity {
     @Override
     protected void initData(Bundle savedInstanceState) {
          mRv.setLayoutManager(new LinearLayoutManager(this));
+
          mAdapter = new QuickRecycleViewAdapter<TestBean>(android.R.layout.simple_list_item_1,
                  new ArrayList<TestBean>()) {
-             private CountDownManager2<TestBean> mCDM;
-             @Override
-             protected void onFinalInit() {
-                 mCDM = new CountDownManager2<TestBean>(1000);
-                 mCDM.attachCountDownTimer(this);
-             }
-
              @Override
              protected void onBindData(Context context, int position, final TestBean item, int itemLayoutId, final ViewHelper helper) {
                  final TextView tv = helper.getView(android.R.id.text1);
@@ -61,19 +70,71 @@ public class ItemCountDownTest extends BaseActivity {
                  });
              }
          };
+        //必须在setAdapter之前调用
+        mCDM.attachCountDownTimer(mAdapter);
         mRv.setAdapter(mAdapter);
-        addTestData();
+      //  addTestData();
     }
 
     @Override
     protected void onDestroy() {
+        //因为有timer.必须调用这个
+        mCDM.cancelAll();
         super.onDestroy();
     }
 
     private void addTestData() {
         long minLeftTime = 20000; //最小20秒
+        long maxLeftTime = 0;
         for(int i=0, size = 30 ;i<size ;i++){
-            mAdapter.getAdapterManager().addItem(new TestBean(minLeftTime + i * 2000));//每个多2秒钟
+            maxLeftTime = minLeftTime + i * 2000;
+            mAdapter.getAdapterManager().addItem(new TestBean(maxLeftTime));//每个多2秒钟
+        }
+        this.mMaxLeftTime =  maxLeftTime;
+    }
+
+    //在末尾添加一条数据
+    @OnClick(R.id.bt_add)
+    public void onClickAdd(View v){
+        this.mMaxLeftTime += 2000;
+        mAdapter.getAdapterManager().addItem(new TestBean(mMaxLeftTime));
+        Logger.i(TAG, "onClickAdd", "item added, position = " + (mAdapter.getAdapterManager().getItemSize() -1) );
+    }
+
+    //删除一条数据
+    @OnClick(R.id.bt_delete)
+    public void onClickDelete(View v){
+        //当前item个数
+        final int itemSize = mAdapter.getAdapterManager().getItemSize();
+        if(itemSize == 0){
+            return;
+        }
+        if(itemSize > 1){
+            mAdapter.getAdapterManager().removeItem(1);
+            Logger.i(TAG, "onClickUpdate", "item deleted, position = " + 1);
+        }else{
+            mAdapter.getAdapterManager().removeItem(0);
+            Logger.i(TAG, "onClickUpdate", "item deleted, position = " + 0);
+        }
+    }
+    //更新一条数据
+    @OnClick(R.id.bt_update)
+    public void onClickUpdate(View v){
+        final int itemSize = mAdapter.getAdapterManager().getItemSize();
+        if(itemSize == 0){
+            return;
+        }
+        if(itemSize > 1){
+            int index = 1;
+            final TestBean testBean = mAdapter.getAdapterManager().getItemAt(index);
+            testBean.leftTime = (mMaxLeftTime+= 2000);
+            mAdapter.getAdapterManager().notifyItemChanged(index);
+            Logger.i(TAG, "onClickUpdate", "item changed, position = " + index +" ,left time = " + mMaxLeftTime);
+        }else{
+            final TestBean testBean = mAdapter.getAdapterManager().getItemAt(0);
+            testBean.leftTime = (mMaxLeftTime+= 2000);
+            mAdapter.getAdapterManager().notifyItemChanged(0);
+            Logger.i(TAG, "onClickUpdate", "item changed, position = " + 0 +" ,left time = " + mMaxLeftTime);
         }
     }
 
