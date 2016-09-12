@@ -1,6 +1,7 @@
 package com.heaven7.android.adapter.countdown;
 
 import android.os.CountDownTimer;
+import android.util.Log;
 
 import com.heaven7.adapter.QuickRecycleViewAdapter;
 
@@ -58,7 +59,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
             item.setCallback(callback);
             item.tick(item.getLeftTime());
         }else{
-            Debugger.getDefault().w(TAG, "setCountDownCallback = null");
+            Log.w(TAG, "can't find CountDownItem , bean = "+ bean);
         }
     }
 
