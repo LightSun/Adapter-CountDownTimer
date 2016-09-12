@@ -21,6 +21,7 @@ import com.heaven7.core.util.ViewHelper;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.TimeZone;
 
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -54,8 +55,10 @@ public class ItemCountDownTest extends BaseActivity {
         return R.layout.ac_item_count_down;
     }
 
+    //TODO item 多了之后删除有bug
     @Override
     protected void initData(Bundle savedInstanceState) {
+         DF.setTimeZone(TimeZone.getTimeZone("UTC"));
          mRv.setLayoutManager(new LinearLayoutManager(this));
 
          mAdapter = new QuickRecycleViewAdapter<TestBean>(android.R.layout.simple_list_item_1,

@@ -54,8 +54,12 @@ public class CountDownManager<T extends ILeftTimeGetter> {
             return;
         }
         final CountDownItem item = mMap.get(bean);
-        item.setCallback(callback);
-        item.tick(item.getLeftTime());
+        if(item != null) {
+            item.setCallback(callback);
+            item.tick(item.getLeftTime());
+        }else{
+            Debugger.getDefault().w(TAG, "setCountDownCallback = null");
+        }
     }
 
     /**

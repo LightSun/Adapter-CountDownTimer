@@ -53,10 +53,14 @@ public class CountDownDataObserver<T extends ILeftTimeGetter> extends RecyclerVi
     @Override
     public void onItemRangeChanged(int positionStart, int itemCount) {
         final AdapterManager<T> am = getAdapterManager();
+        final AdapterManager.IHeaderFooterManager hf = this.mAdapter;
         int pos;
         T bean;
         for (int i = 0; i < itemCount; i++) {
             pos = positionStart + i;
+            if(hf.isHeader(pos) || hf.isFooter(pos)){
+                continue;
+            }
             bean = am.getItemAt(pos);
             mCDM.notifyLeftTimeChanged(pos, bean);
         }
@@ -64,11 +68,16 @@ public class CountDownDataObserver<T extends ILeftTimeGetter> extends RecyclerVi
 
     @Override
     public void onItemRangeInserted(int positionStart, int itemCount) {
+        //may be header and footer.
         final AdapterManager<T> am = getAdapterManager();
+        final AdapterManager.IHeaderFooterManager hf = this.mAdapter;
         int pos;
         T bean;
         for (int i = 0; i < itemCount; i++) {
             pos = positionStart + i;
+            if(hf.isHeader(pos) || hf.isFooter(pos)){
+                continue;
+            }
             bean = am.getItemAt(pos);
             mCDM.addCountDownTask(pos, bean, true);
         }
@@ -82,10 +91,14 @@ public class CountDownDataObserver<T extends ILeftTimeGetter> extends RecyclerVi
     @Override
     public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
         final AdapterManager<T> am = getAdapterManager();
+        final AdapterManager.IHeaderFooterManager hf = this.mAdapter;
         int pos;
         T bean;
         for (int i = 0; i < itemCount; i++) {
             pos = toPosition + i; //get the reach position
+            if(hf.isHeader(pos) || hf.isFooter(pos)){
+                continue;
+            }
             bean = am.getItemAt(pos);
             mCDM.notifyPositionChanged(pos, bean);
         }
