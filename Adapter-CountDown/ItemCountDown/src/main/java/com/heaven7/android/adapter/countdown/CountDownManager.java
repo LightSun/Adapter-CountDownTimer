@@ -174,7 +174,6 @@ public class CountDownManager<T extends ILeftTimeGetter> {
             this.mTimer = new CountDownTimer(mLeftTime, countDownInterval) {
                 @Override
                 public void onTick(long millisUntilFinished) {
-                    Debugger.getDefault().d(TAG + "__onTick", "position = " + mPos);
                     tick(millisUntilFinished);
                 }
 
@@ -191,6 +190,7 @@ public class CountDownManager<T extends ILeftTimeGetter> {
          * @param leftTime the left time or 0 means finished
          */
         public void tick(long leftTime) {
+            Debugger.getDefault().d(TAG + "tick", "position = " + mPos + " ,leftTime = "+ leftTime);
             this.mLeftTime = leftTime;
             if (mCallback != null) {
                 mCallback.onTick(mPos, mBean, leftTime);

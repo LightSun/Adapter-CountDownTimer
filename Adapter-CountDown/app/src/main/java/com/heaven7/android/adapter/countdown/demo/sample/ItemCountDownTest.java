@@ -16,11 +16,13 @@ import com.heaven7.android.adapter.countdown.demo.BaseActivity;
 import com.heaven7.android.adapter.countdown.demo.R;
 import com.heaven7.android.adapter.countdown.demo.extra.TestBean;
 import com.heaven7.core.util.Logger;
+import com.heaven7.core.util.MainWorker;
 import com.heaven7.core.util.ViewHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import butterknife.InjectView;
@@ -102,8 +104,17 @@ public class ItemCountDownTest extends BaseActivity {
     @OnClick(R.id.bt_add)
     public void onClickAdd(View v){
         this.mMaxLeftTime += 2000;
-        mAdapter.getAdapterManager().addItem(new TestBean(mMaxLeftTime));
-        Logger.i(TAG, "onClickAdd", "item added, position = " + (mAdapter.getAdapterManager().getItemSize() -1) );
+        MainWorker.postDelay(2000, new Runnable() {
+            @Override
+            public void run() {
+                List<TestBean> items = new ArrayList<TestBean>();
+                for(int i =0 ;i < 5 ;i++){
+                    items.add(new TestBean(mMaxLeftTime));
+                }
+                mAdapter.getAdapterManager().addItems(items);
+                Logger.i(TAG, "onClickAdd", "items added " );
+            }
+        });
     }
 
     //删除一条数据
