@@ -50,7 +50,7 @@ public class ItemCountDownTest extends BaseActivity {
     private long mMaxLeftTime = 100 * 1000;
     private int mId;
 
-    // private final CountDownManager<TestBean> mCDM = new CountDownManager<TestBean>(1000);
+    // private final CountDownManager<TestBean> mCDM = new CountDownManager<TestBean>(1000); //item 多了之后删除有bug
     private final CountDownManager2<TestBean> mCDM = new CountDownManager2<TestBean>(1000);
 
     @Override
@@ -58,7 +58,6 @@ public class ItemCountDownTest extends BaseActivity {
         return R.layout.ac_item_count_down;
     }
 
-    //TODO item 多了之后删除有bug
     @Override
     protected void initData(Bundle savedInstanceState) {
         DF.setTimeZone(TimeZone.getTimeZone("UTC"));

@@ -3,6 +3,7 @@ package com.heaven7.android.adapter.countdown;
 import android.os.Message;
 import android.os.SystemClock;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 import com.heaven7.adapter.AdapterManager;
 import com.heaven7.adapter.QuickRecycleViewAdapter;
@@ -17,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * the countdown manager which only support for RecyclerView adapter, also delete item in RecyclerView adapter.
  * Created by heaven7 on 2017/1/11.
+ *
  * @since 1.1.0
  */
 
@@ -52,6 +54,11 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
      * the count of iteration. it will be reset to zero after {@link #detach()}.
      */
     private long mIterationCount;
+    /**
+     * indicate whether the countdown update the view or not, default is true.
+     * if set to false , it will only update data, but not update view/ui .
+     */
+    private volatile boolean mEnableUpdateView = true;
 
     /**
      * create a CountDownManager2.
@@ -76,7 +83,7 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
     }
 
     /**
-     * attach this , if the work thread is not prepared. it will auto prepare for count down task.
+     * attach the adapter to  this , if the work thread is not prepared. it will auto prepare for count down task.
      *
      * @param adapter the adapter
      */
@@ -89,6 +96,26 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
         adapter.getAdapterManager().registerAdapterDataRemoveObserver(mImpl);
     }
 
+    /**
+     * set if enabled update the view or not.
+     * @param enable true to enable.
+     */
+    public void setEnableUpdateView(boolean enable) {
+        this.mEnableUpdateView = enable;
+    }
+
+    /**
+     *  whether the update view enabled or not.
+     * @return whether the update view enabled or not.
+     */
+    public boolean isEnabledUpdateView() {
+        return mEnableUpdateView;
+    }
+
+    /**
+     * detach the adapter and stop iteration. but it can start iteration in later.
+     * so the background thread is also alive. see {@link android.os.HandlerThread}.
+     */
     public synchronized void detach() {
         this.mDetached = true;
         this.mMap.clear();
@@ -102,9 +129,10 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
     }
 
     /**
-     *  if is detached. it also be true if call this after {@link #detach()} or {@link #destroy()} .
-     *  but if you call {@link #attach(QuickRecycleViewAdapter)} it will return false.
-     * @return  true if is detached.
+     * if is detached. it also be true if call this after {@link #detach()} or {@link #destroy()} .
+     * but if you call {@link #attach(QuickRecycleViewAdapter)} it will return false.
+     *
+     * @return true if is detached.
      */
     public boolean isDetached() {
         return mDetached;
@@ -173,7 +201,12 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
                     }
                 }
             }
-            mMainHandler.obtainMessage(MSG, startTime).sendToTarget();
+            if (mEnableUpdateView) {
+                mMainHandler.obtainMessage(MSG, startTime).sendToTarget();
+            } else {
+                //update data , but not update ui.
+                mWorkHandler.sendEmptyMessageDelayed(MSG, mCountdownInterval);
+            }
         }
         return true;
     }
@@ -206,7 +239,9 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
             info = en.getValue();
             if (shouldAdjust) {
                 /**
-                 * sometimes getAdapterPosition() may return -1. so we need adjust by myself.
+                 * sometimes getAdapterPosition() may return -1, caused by the item is not showing in RecyclerView.
+                 * @ee {@link RecyclerView#getChildAdapterPosition(View)} .
+                 * so we need adjust by myself.
                  */
                 int pos = info.getAdapterPosition();
                 if (pos == -1) {
