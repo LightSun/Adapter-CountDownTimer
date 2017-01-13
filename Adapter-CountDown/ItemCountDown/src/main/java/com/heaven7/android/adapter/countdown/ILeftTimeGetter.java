@@ -14,4 +14,11 @@ public interface ILeftTimeGetter extends ISelectable{
      */
     long getLeftTime();
 
+    /**
+     * decrease left time
+     * @param delta the delta time
+     * @return true, if  success. false indicate it will be removed.
+     */
+    boolean decreaseLeftTime(long  delta);
+
 }

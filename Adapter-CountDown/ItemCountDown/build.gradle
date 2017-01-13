@@ -24,7 +24,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.android.support:recyclerview-v7:23.3.0'
 
-    compile 'com.heaven7.core.adapter:adapter:1.6.1'
+    compile 'com.heaven7.core.adapter:adapter:1.8.6'
+    compile 'com.heaven7.core.util:util-v1:1.1.2'
 }
 
 apply from: "bintrayUpload.gradle"

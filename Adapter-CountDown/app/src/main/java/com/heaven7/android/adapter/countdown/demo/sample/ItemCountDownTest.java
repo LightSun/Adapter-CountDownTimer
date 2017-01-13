@@ -10,8 +10,7 @@ import android.widget.TextView;
 
 import com.heaven7.adapter.AdapterManager;
 import com.heaven7.adapter.QuickRecycleViewAdapter;
-import com.heaven7.android.adapter.countdown.CountDownCallbackImpl;
-import com.heaven7.android.adapter.countdown.CountDownManager;
+import com.heaven7.android.adapter.countdown.CountDownManager2;
 import com.heaven7.android.adapter.countdown.demo.BaseActivity;
 import com.heaven7.android.adapter.countdown.demo.R;
 import com.heaven7.android.adapter.countdown.demo.extra.TestBean;
@@ -48,9 +47,11 @@ public class ItemCountDownTest extends BaseActivity {
     RecyclerView mRv;
 
     private QuickRecycleViewAdapter<TestBean> mAdapter;
-    private long mMaxLeftTime = 60*1000;
+    private long mMaxLeftTime = 100 * 1000;
+    private int mId;
 
-    private final CountDownManager<TestBean> mCDM = new CountDownManager<TestBean>(1000);
+    // private final CountDownManager<TestBean> mCDM = new CountDownManager<TestBean>(1000);
+    private final CountDownManager2<TestBean> mCDM = new CountDownManager2<TestBean>(1000);
 
     @Override
     protected int getlayoutId() {
@@ -60,93 +61,102 @@ public class ItemCountDownTest extends BaseActivity {
     //TODO item 多了之后删除有bug
     @Override
     protected void initData(Bundle savedInstanceState) {
-         DF.setTimeZone(TimeZone.getTimeZone("UTC"));
-         mRv.setLayoutManager(new LinearLayoutManager(this));
+        DF.setTimeZone(TimeZone.getTimeZone("UTC"));
+        mRv.setLayoutManager(new LinearLayoutManager(this));
 
-         mAdapter = new QuickRecycleViewAdapter<TestBean>(android.R.layout.simple_list_item_1,
-                 new ArrayList<TestBean>()) {
-             @Override
-             protected void onBindData(Context context, int position, final TestBean item, int itemLayoutId, final ViewHelper helper) {
-                 final TextView tv = helper.getView(android.R.id.text1);
-                 mCDM.setCountDownCallback(item, new CountDownCallbackImpl<TestBean>(position, tv) {
-                     @Override
-                     protected CharSequence format(int position, TestBean bean, long millisUntilFinished) {
-                         return DF.format(new Date(millisUntilFinished) ) ;
-                     }
-                 });
-             }
-         };
+        setAdapter();
+        //  addTestData();
+    }
+
+    private void setAdapter() {
+        mAdapter = new QuickRecycleViewAdapter<TestBean>(android.R.layout.simple_list_item_1,
+                new ArrayList<TestBean>()) {
+            @Override
+            protected void onBindData(Context context, int position, final TestBean item, int itemLayoutId, final ViewHelper helper) {
+                Logger.w(TAG, "onBindData", "position = " + position);
+                final TextView tv = helper.getView(android.R.id.text1);
+                tv.setText(DF.format(new Date(item.getLeftTime())));
+               /*
+               mCDM.setCountDownCallback(item,  new CountDownCallbackImpl<TestBean>(position, tv) {
+                    @Override
+                    protected CharSequence format(int position, TestBean bean, long millisUntilFinished) {
+                        return DF.format(new Date(millisUntilFinished));
+                    }
+                });*/
+            }
+        };
         //必须在setAdapter之前调用
-        mCDM.attachCountDownObserver(mAdapter);
+        mCDM.attach(mAdapter);
         mRv.setAdapter(mAdapter);
-      //  addTestData();
     }
 
     @Override
     protected void onDestroy() {
         //因为有timer.必须调用这个
-        mCDM.detachCountDownObserver();
-        mCDM.cancelAll();
+      /*  mCDM.detachCountDownObserver();
+        mCDM.cancelAll();*/
+        mCDM.destroy();
         super.onDestroy();
     }
 
     private void addTestData() {
         long minLeftTime = 20000; //最小20秒
         long maxLeftTime = 0;
-        for(int i=0, size = 30 ;i<size ;i++){
+        for (int i = 0, size = 30; i < size; i++) {
             maxLeftTime = minLeftTime + i * 2000;
             mAdapter.getAdapterManager().addItem(new TestBean(maxLeftTime));//每个多2秒钟
         }
-        this.mMaxLeftTime =  maxLeftTime;
+        this.mMaxLeftTime = maxLeftTime;
     }
 
     //在末尾添加一条数据
     @OnClick(R.id.bt_add)
-    public void onClickAdd(View v){
+    public void onClickAdd(View v) {
         this.mMaxLeftTime += 2000;
         MainWorker.postDelay(2000, new Runnable() {
             @Override
             public void run() {
                 List<TestBean> items = new ArrayList<TestBean>();
-                for(int i =0 ;i < 5 ;i++){
+                for (int i = 0; i < 5; i++) {
                     items.add(new TestBean(mMaxLeftTime));
                 }
                 mAdapter.getAdapterManager().addItems(items);
-                Logger.i(TAG, "onClickAdd", "items added " );
+                Logger.i(TAG, "onClickAdd", "items added ");
             }
         });
     }
 
     //删除一条数据
     @OnClick(R.id.bt_delete)
-    public void onClickDelete(View v){
+    public void onClickDelete(View v) {
         //当前item个数
         final int itemSize = mAdapter.getAdapterManager().getItemSize();
-        if(itemSize == 0){
+        if (itemSize == 0) {
             return;
         }
-        if(itemSize > 1){
+        if (itemSize > 1) {
             mAdapter.getAdapterManager().removeItem(1);
-            Logger.i(TAG, "onClickUpdate", "item deleted, position = " + 1);
-        }else{
+            Logger.w(TAG, "onClickUpdate", "item deleted, position = " + 1);
+        } else {
             mAdapter.getAdapterManager().removeItem(0);
-            Logger.i(TAG, "onClickUpdate", "item deleted, position = " + 0);
+            Logger.w(TAG, "onClickUpdate", "item deleted, position = " + 0);
         }
     }
+
     //更新一条数据
     @OnClick(R.id.bt_update)
-    public void onClickUpdate(View v){
+    public void onClickUpdate(View v) {
         final int itemSize = mAdapter.getAdapterManager().getItemSize();
-        if(itemSize == 0){
+        if (itemSize == 0) {
             return;
         }
-        if(itemSize > 1){
+        if (itemSize > 1) {
             int index = 1;
             mAdapter.getAdapterManager().performItemChange(1, mChanger);
-            Logger.i(TAG, "onClickUpdate", "item changed, position = " + index +" ,left time = " + mMaxLeftTime);
-        }else{
+            Logger.i(TAG, "onClickUpdate", "item changed, position = " + index + " ,left time = " + mMaxLeftTime);
+        } else {
             mAdapter.getAdapterManager().performItemChange(0, mChanger);
-            Logger.i(TAG, "onClickUpdate", "item changed, position = " + 0 +" ,left time = " + mMaxLeftTime);
+            Logger.i(TAG, "onClickUpdate", "item changed, position = " + 0 + " ,left time = " + mMaxLeftTime);
         }
     }
 
@@ -154,7 +164,7 @@ public class ItemCountDownTest extends BaseActivity {
         @Override
         public boolean onItemChange(TestBean testBean) {
             testBean.leftTime = (mMaxLeftTime += 2000);
-            return true ;
+            return true;
         }
     };
 }
