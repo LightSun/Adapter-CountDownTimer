@@ -8,8 +8,8 @@ import com.heaven7.adapter.QuickRecycleViewAdapter;
 import java.util.HashMap;
 
 /**
- * the count down manager.
- *
+ * the count down manager. this implements of Countdown didn't support remove item .
+ * but if you want , you can use {@link CountDownManager2} instead.
  * @param <T> the data
  */
 public class CountDownManager<T extends ILeftTimeGetter> {

@@ -15,7 +15,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * the countdown manager which only support for RecyclerView adapter, also delete item in RecyclerView adapter.
  * Created by heaven7 on 2017/1/11.
+ * @since 1.1.0
  */
 
 public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
@@ -30,14 +32,24 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
     private final ArrayList<Integer> mRemovedPositions = new ArrayList<>();
 
     private final long mCountdownInterval;
+    /**
+     * the max iteration count .determined by {@link #mCountdownInterval}. if {@link #mIterationCount} reach
+     * {@link #mMaxIterationCount}. the iteration will be quit. but back thread is also active.
+     */
     private final long mMaxIterationCount;
     private QuickRecycleViewAdapter<T> mAdapter;
 
+    /**
+     * indicate if is iteration the countdown. it will be reset to zero after {@link #detach()}.
+     */
     private boolean mStartedIteration = false;
     private volatile boolean mDetached = false;
+    /**
+     * should just the position .
+     */
     private boolean mAdjustPosition = false;
     /**
-     * the count of iteration.
+     * the count of iteration. it will be reset to zero after {@link #detach()}.
      */
     private long mIterationCount;
 
@@ -55,7 +67,7 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
      * create a CountDownManager.
      *
      * @param countdownInterval  the interval time of countdown.
-     * @param mMaxIterationCount the max iteration count.
+     * @param mMaxIterationCount the max iteration count. if reached it will be auto detach.
      */
     public CountDownManager2(long countdownInterval, int mMaxIterationCount) {
         this.mCountdownInterval = countdownInterval;
@@ -80,6 +92,8 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
     public synchronized void detach() {
         this.mDetached = true;
         this.mMap.clear();
+        mStartedIteration = false;
+        mIterationCount = 0;
         if (mAdapter != null) {
             mAdapter.unregisterAdapterDataObserver(mImpl);
             mAdapter.getAdapterManager().unregisterAdapterDataRemoveObserver(mImpl);
@@ -87,6 +101,11 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
         }
     }
 
+    /**
+     *  if is detached. it also be true if call this after {@link #detach()} or {@link #destroy()} .
+     *  but if you call {@link #attach(QuickRecycleViewAdapter)} it will return false.
+     * @return  true if is detached.
+     */
     public boolean isDetached() {
         return mDetached;
     }
@@ -121,12 +140,8 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
      * destroy all . also contains the thread of background.
      */
     public void destroy() {
-        detach();
         quit();
-        synchronized (this) {
-            mStartedIteration = false;
-            mIterationCount = 0;
-        }
+        detach();
     }
 
     private synchronized void startLoop() {
@@ -153,7 +168,9 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
                 if (!en.getKey().decreaseLeftTime(interval)) {
                     mTempList.remove(en);
                     map.remove(en.getKey());
-                    Logger.i(TAG, "processMessageInWorkThread", "an item removed: " + en.getValue());
+                    if (Debugger.DEBUG) {
+                        Logger.i(TAG, "processMessageInWorkThread", "an item removed: " + en.getValue());
+                    }
                 }
             }
             mMainHandler.obtainMessage(MSG, startTime).sendToTarget();
@@ -173,7 +190,9 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
             notifyIntervalTimeChanged();
         }
         final long consumeTime = SystemClock.elapsedRealtime() - startTime;
-        Logger.i(TAG, "processMessageInMainThread", "consumeTime = " + consumeTime);
+        if (Debugger.DEBUG) {
+            Logger.i(TAG, "processMessageInMainThread", "consumeTime = " + consumeTime);
+        }
         mWorkHandler.sendEmptyMessageDelayed(MSG, mCountdownInterval - consumeTime);
         return true;
     }
@@ -206,7 +225,9 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
             } else {
                 am.notifyItemChanged(info.getPosition());
             }
-            Logger.w(TAG, "main_notifyItemChanged", "pos = " + info.mPosition);
+            if (Debugger.DEBUG) {
+                Logger.d(TAG, "main_notifyItemChanged", "pos = " + info.mPosition);
+            }
         }
         mAdjustPosition = false;
         mRemovedPoss.clear();
@@ -228,12 +249,12 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
 
         public void onChanged() {
             // Do nothing
-            Logger.i(TAG, "onChanged", "");
+            //Logger.i(TAG, "onChanged", "");
         }
 
         public void onItemRangeChanged(int positionStart, int itemCount) {
             // do nothing
-            Logger.i(TAG, "onItemRangeChanged", "");
+            //Logger.i(TAG, "onItemRangeChanged", "");
         }
 
         public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
@@ -243,7 +264,7 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
         }
 
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            Logger.i(TAG, "onItemRangeInserted", "");
+            //Logger.i(TAG, "onItemRangeInserted", "");
             checkAdapter();
             final QuickRecycleViewAdapter<T> adapter = getAdapter();
             final AdapterManager<T> am = adapter.getAdapterManager();
@@ -267,7 +288,7 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
 
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
             // do nothing
-            Logger.i(TAG, "onItemRangeMoved", "");
+            // Logger.i(TAG, "onItemRangeMoved", "");
         }
 
         @Override
@@ -277,7 +298,7 @@ public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
             final ArrayList<Integer> mRemovedPositions = CountDownManager2.this.mRemovedPositions;
             for (T t : items) {
                 mRemovedPositions.add(mMap.remove(t).getPosition());
-               // Logger.i(TAG, "onItemRangeRemoved", "an item removed: " + t);
+                // Logger.i(TAG, "onItemRangeRemoved", "an item removed: " + t);
             }
             //notify 尚未完成，不能在这里adjust position.
             //adjustPositions();
