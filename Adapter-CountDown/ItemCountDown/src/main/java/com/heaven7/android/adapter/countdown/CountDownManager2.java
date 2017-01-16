@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.1.0
  */
 
-public class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
+public final class CountDownManager2<T extends ILeftTimeGetter> extends AsyncManager {
 
     private static final String TAG = CountDownManager2.class.getSimpleName();
     private static final int MSG = 1;
