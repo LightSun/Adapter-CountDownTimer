@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * the countdown manager which only support for RecyclerView adapter, also delete item in RecyclerView adapter.
+ * the countdown manager which only support for RecyclerView adapter, also support delete item in RecyclerView adapter.
  * Created by heaven7 on 2017/1/11.
  *
  * @since 1.1.0
